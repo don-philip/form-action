@@ -1,6 +1,51 @@
+import { useActionState } from 'react'
+import {isEmail, isNotEmpty, isEqualToOtherValue, hasMinLength } from '../util/validation'
+
 export default function Signup() {
+  function signUpAction(prevFormState,formData){
+    const email=formData.get('email')
+    const password=formData.get('')
+    const confirmPassword=formData.get('confirm-password')
+    const firstName=formData.get('first-name')
+    const lastName=formData.get('last-name')
+    const role=formData.get('role')
+    const terms=formData.get('terms')
+    const acquisitionChannel=formData.getAll('acquisition')
+
+    let errors=[]
+
+    if(!isEmail(email)){
+      errors.push('Invalid email address')
+    }
+    if(!isNotEmpty(password) || !hasMinLength(password,6)){
+      errors.push('Invalid Password')
+    }
+    if(!isEqualToOtherValue(password,confirmPassword)){
+      errors.push('Passwords do not match')
+    }
+    if(!isNotEmpty(firstName) || !isNotEmpty(lastName)){
+      errors.push('Invalid name')
+    }
+    if(!isNotEmpty(role)){
+      errors.push('Role not selected')
+    }
+    if(!terms){
+      errors.push('Terms and condition not agreed')
+    }
+    if(acquisitionChannel.legth===0){
+      errors.push('No acquisition chanel selected')
+    }
+
+    if(errors.length>0){
+      return {errors}
+    }
+    return {errors:null}
+  }
+
+  const [formState, formAction, pending] = useActionState(signUpAction,{errors:null})
+
   return (
-    <form>
+    <form action={formAction}>
       <h2>Welcome on board!</h2>
       <p>We just need a little bit of data from you to get you started 🚀</p>
 
@@ -84,7 +129,17 @@ export default function Signup() {
           agree to the terms and conditions
         </label>
       </div>
-
+      
+      {
+        formState.errors &&
+        <ul className='error'>
+          {
+            formState.errors.map(error=><li key={error}>{error}</li>)
+          }
+      </ul>
+      }
+      
+      
       <p className="form-actions">
         <button type="reset" className="button button-flat">
           Reset
